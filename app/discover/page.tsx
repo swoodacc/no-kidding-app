@@ -4,114 +4,29 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Heart, X, Star, Sparkles, MapPin, Briefcase, CheckCircle } from "lucide-react"
+import { Heart, X, Star, MapPin, Briefcase, CheckCircle } from "lucide-react"
 import Link from "next/link"
-import AdvancedSearch from "@/components/advanced-search" // Import AdvancedSearch component
 import { mockProfiles } from "@/lib/mock-data"
-import { getPersonalizedIcebreakers } from "@/lib/icebreakers"
-import { hasFeatureAccess } from "@/lib/subscription"
-
-interface EnhancedProfile {
-  id: string
-  name: string
-  age: number
-  location: string
-  occupation: string
-  bio: string
-  interests: string[]
-  images: string[]
-  verified?: boolean
-  distance: string
-}
 
 export default function DiscoverPage() {
-  const [profiles] = useState<EnhancedProfile[]>(mockProfiles)
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false)
-  const [showIcebreakers, setShowIcebreakers] = useState(false)
-  const [selectedProfile, setSelectedProfile] = useState<EnhancedProfile | null>(null)
-  const [dailyLikes, setDailyLikes] = useState(0)
-  const [superLikes, setSuperLikes] = useState(0)
-  const [loading, setLoading] = useState(false)
-  const [userSubscription, setUserSubscription] = useState(null) // This would come from your auth context
-  const [liked, setLiked] = useState<string[]>([])
-  const [passed, setPassed] = useState<string[]>([])
+  const currentProfile = mockProfiles[currentIndex]
 
-  const currentProfile = profiles[currentIndex]
-
-  const handleLike = (isSuper = false) => {
-    if (!currentProfile) return
-
-    // Update counters
-    if (isSuper) {
-      setSuperLikes((prev) => prev + 1)
-    } else {
-      setDailyLikes((prev) => prev + 1)
-    }
-
-    // Check if it's a match
-    // This would be your actual matching logic
-
-    // Move to next profile
+  const handleLike = () => {
     nextProfile()
   }
 
   const handlePass = () => {
-    if (!currentProfile) return
-    setPassed([...passed, currentProfile.id])
     nextProfile()
   }
 
   const nextProfile = () => {
-    if (currentIndex < profiles.length - 1) {
+    if (currentIndex < mockProfiles.length - 1) {
       setCurrentIndex((prev) => prev + 1)
     } else {
       // Loop back to start for demo
       setCurrentIndex(0)
     }
-  }
-
-  const handleShowIcebreakers = () => {
-    if (!hasFeatureAccess(userSubscription, "Icebreaker questions")) {
-      alert("Upgrade to Premium to access icebreaker questions!")
-      return
-    }
-    setSelectedProfile(currentProfile)
-    setShowIcebreakers(true)
-  }
-
-  const getCompatibilityColor = (score: number) => {
-    if (score >= 80) return "text-green-600 bg-green-100"
-    if (score >= 60) return "text-blue-600 bg-blue-100"
-    if (score >= 40) return "text-yellow-600 bg-yellow-100"
-    return "text-red-600 bg-red-100"
-  }
-
-  const formatLastActive = (lastActive?: string) => {
-    if (!lastActive) return "Recently active"
-
-    const now = new Date()
-    const activeDate = new Date(lastActive)
-    const diffHours = Math.floor((now.getTime() - activeDate.getTime()) / (1000 * 60 * 60))
-
-    if (diffHours < 1) return "Active now"
-    if (diffHours < 24) return `Active ${diffHours}h ago`
-    if (diffHours < 168) return `Active ${Math.floor(diffHours / 24)}d ago`
-    return "Active recently"
-  }
-
-  if (loading) {
-    return (
-      <div className="container py-10">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Finding your perfect matches...</p>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   if (!currentProfile) {
@@ -234,7 +149,10 @@ export default function DiscoverPage() {
                   variant="outline"
                   size="lg"
                   className="rounded-full w-14 h-14 border-2 border-blue-500 text-blue-500 hover:bg-blue-50 bg-transparent"
-                  onClick={() => alert("Super Like! 💙")}
+                  onClick={() => {
+                    alert("Super Like! 💙")
+                    nextProfile()
+                  }}
                 >
                   <Star className="h-6 w-6" />
                 </Button>
@@ -242,7 +160,7 @@ export default function DiscoverPage() {
                 <Button
                   size="lg"
                   className="rounded-full w-20 h-20 bg-gradient-to-br from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 shadow-lg"
-                  onClick={() => handleLike(false)}
+                  onClick={handleLike}
                 >
                   <Heart className="h-8 w-8" />
                 </Button>
@@ -258,74 +176,10 @@ export default function DiscoverPage() {
 
           {/* Progress Indicator */}
           <div className="text-center mt-4 text-sm text-muted-foreground">
-            {currentIndex + 1} of {profiles.length}
+            {currentIndex + 1} of {mockProfiles.length}
           </div>
         </div>
       </div>
-
-      {/* Advanced Search Modal */}
-      {showAdvancedSearch && (
-        <Dialog open={showAdvancedSearch} onOpenChange={setShowAdvancedSearch}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <AdvancedSearch
-              onSearch={(filters) => {
-                console.log("Search with filters:", filters)
-                setShowAdvancedSearch(false)
-                // Implement search with filters
-              }}
-              onClose={() => setShowAdvancedSearch(false)}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Icebreakers Modal */}
-      {showIcebreakers && selectedProfile && (
-        <Dialog open={showIcebreakers} onOpenChange={setShowIcebreakers}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center">
-                <Sparkles className="h-5 w-5 mr-2" />
-                Conversation Starters for {selectedProfile.name}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              {getPersonalizedIcebreakers(
-                { interests: [] }, // This would be current user's profile
-                selectedProfile,
-                3,
-              ).map((icebreaker, index) => (
-                <Card key={index} className="p-4 cursor-pointer hover:bg-muted/50">
-                  <h4 className="font-medium mb-2">{icebreaker.question}</h4>
-                  {icebreaker.followUp && (
-                    <p className="text-sm text-muted-foreground">Follow-up: {icebreaker.followUp}</p>
-                  )}
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {icebreaker.tags.map((tag, tagIndex) => (
-                      <Badge key={tagIndex} variant="outline" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </Card>
-              ))}
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setShowIcebreakers(false)}>
-                  Close
-                </Button>
-                <Button
-                  onClick={() => {
-                    // Navigate to messaging with selected icebreaker
-                    setShowIcebreakers(false)
-                  }}
-                >
-                  Start Conversation
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   )
 }

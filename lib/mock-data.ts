@@ -1,4 +1,4 @@
-// Mock user profiles
+// Mock user profiles for demonstration
 export const mockProfiles = [
   {
     id: "1",
@@ -123,15 +123,6 @@ export const mockMatches = [
     avatar: "/man-city-professional.jpg",
     matchedAt: "3 days ago",
   },
-]
-
-// Mock icebreaker questions
-export const mockIcebreakers = [
-  "What's your favorite way to spend a free weekend?",
-  "If you could travel anywhere tomorrow, where would you go?",
-  "What's the best concert you've ever been to?",
-  "Coffee or tea?",
-  "What's your go-to comfort food?",
 ]
 
 // Mock user stats
